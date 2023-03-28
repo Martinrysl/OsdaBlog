@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, request
+from flask import Flask, render_template, redirect, url_for, flash, request, abort
 from flask_ckeditor import CKEditor
 from datetime import date
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -9,7 +9,7 @@ from forms import CreatePostForm, RegisterUser, Login
 from flask_gravatar import Gravatar
 from flask_bootstrap import Bootstrap
 import werkzeug.security
-
+from functools import wraps
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 ckeditor = CKEditor(app)
@@ -52,6 +52,22 @@ def load_user(user_id):
     return NewUser.query.get(int(user_id))
 
 
+def admin_only(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if current_user.id != 3:
+            return render_template('403.html')
+
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@app.errorhandler(403)
+def page_not_found(e):
+
+    return render_template('403.html'), 403
+
+
 @app.route('/')
 def get_all_posts():
     posts = BlogPost.query.all()
@@ -88,7 +104,7 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    error = None
+
     form = Login()
     if form.validate_on_submit():
         email = form.email.data
@@ -119,7 +135,7 @@ def logout():
 @app.route("/post/<int:post_id>")
 def show_post(post_id):
     requested_post = BlogPost.query.get(post_id)
-    return render_template("post.html", post=requested_post)
+    return render_template("post.html", post=requested_post, logged_in=current_user.is_authenticated)
 
 
 @app.route("/about")
@@ -133,6 +149,7 @@ def contact():
 
 
 @app.route("/new-post")
+@admin_only
 def add_new_post():
     form = CreatePostForm()
     if form.validate_on_submit():
@@ -147,11 +164,13 @@ def add_new_post():
         db.session.add(new_post)
         db.session.commit()
         return redirect(url_for("get_all_posts"))
-    return render_template("make-post.html", form=form)
+
+    return render_template("make-post.html", form=form, logged_in=current_user.is_authenticated)
 
 
 @app.route("/edit-post/<int:post_id>")
 @login_required
+@admin_only
 def edit_post(post_id):
     post = BlogPost.query.get(post_id)
     edit_form = CreatePostForm(
@@ -170,11 +189,12 @@ def edit_post(post_id):
         db.session.commit()
         return redirect(url_for("show_post", post_id=post.id))
 
-    return render_template("make-post.html", form=edit_form)
+    return render_template("make-post.html", form=edit_form, logged_in=current_user.is_authenticated)
 
 
 @app.route("/delete/<int:post_id>")
 @login_required
+@admin_only
 def delete_post(post_id):
     post_to_delete = BlogPost.query.get(post_id)
     db.session.delete(post_to_delete)
@@ -183,4 +203,5 @@ def delete_post(post_id):
 
 
 if __name__ == "__main__":
+    app.register_error_handler(403, page_not_found)
     app.run(debug=True)
