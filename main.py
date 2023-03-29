@@ -10,12 +10,16 @@ from flask_gravatar import Gravatar
 from flask_bootstrap import Bootstrap
 import werkzeug.security
 from functools import wraps
+from sqlalchemy import Table, Column, Integer, ForeignKey
+
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 ckeditor = CKEditor(app)
 Bootstrap(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
+
 
 ##CONNECT TO DB
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/martin/PycharmProjects/Last_Capstone/blog.db'
@@ -24,27 +28,30 @@ db = SQLAlchemy(app)
 
 
 ##CONFIGURE TABLES
-
-class BlogPost(db.Model):
-    __tablename__ = "blog_posts"
-    id = db.Column(db.Integer, primary_key=True)
-    author = db.Column(db.String(250), nullable=False)
-    title = db.Column(db.String(250), unique=True, nullable=False)
-    subtitle = db.Column(db.String(250), nullable=False)
-    date = db.Column(db.String(250), nullable=False)
-    body = db.Column(db.Text, nullable=False)
-    img_url = db.Column(db.String(250), nullable=False)
-
-
-class NewUser(UserMixin, db.Model):
+class NewUser(UserMixin, db.Model): #Parent
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     user = db.Column(db.String(250), nullable=False)
     email = db.Column(db.String(250), unique=True, nullable=False)
     password = db.Column(db.String(250), nullable=False)
+    post = relationship("BlogPost", back_populates="author")
 
     def __repr__(self):
         return '<Email %r>' % self.email
+
+
+class BlogPost(db.Model): #Child
+    __tablename__ = "blog_posts"
+    id = db.Column(db.Integer, primary_key=True)
+
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    author = relationship("NewUser", back_populates="post")
+
+    title = db.Column(db.String(250), unique=True, nullable=False)
+    subtitle = db.Column(db.String(250), nullable=False)
+    date = db.Column(db.String(250), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    img_url = db.Column(db.String(250), nullable=False)
 
 
 @login_manager.user_loader
@@ -55,7 +62,7 @@ def load_user(user_id):
 def admin_only(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if current_user.id != 3:
+        if current_user.id != 1:
             return render_template('403.html')
 
         return f(*args, **kwargs)
@@ -132,7 +139,7 @@ def logout():
     return redirect(url_for('get_all_posts'))
 
 
-@app.route("/post/<int:post_id>")
+@app.route("/post/<int:post_id>", methods=['GET', 'POST'])
 def show_post(post_id):
     requested_post = BlogPost.query.get(post_id)
     return render_template("post.html", post=requested_post, logged_in=current_user.is_authenticated)
@@ -148,7 +155,7 @@ def contact():
     return render_template("contact.html")
 
 
-@app.route("/new-post")
+@app.route("/new-post", methods=['GET', 'POST'])
 @admin_only
 def add_new_post():
     form = CreatePostForm()
@@ -165,10 +172,10 @@ def add_new_post():
         db.session.commit()
         return redirect(url_for("get_all_posts"))
 
-    return render_template("make-post.html", form=form, logged_in=current_user.is_authenticated)
+    return render_template("make-post.html", form=form, current_user=current_user)
 
 
-@app.route("/edit-post/<int:post_id>")
+@app.route("/edit-post/<int:post_id>", methods=['GET', 'POST'])
 @login_required
 @admin_only
 def edit_post(post_id):
@@ -192,7 +199,7 @@ def edit_post(post_id):
     return render_template("make-post.html", form=edit_form, logged_in=current_user.is_authenticated)
 
 
-@app.route("/delete/<int:post_id>")
+@app.route("/delete/<int:post_id>", methods=['GET', 'POST'])
 @login_required
 @admin_only
 def delete_post(post_id):
