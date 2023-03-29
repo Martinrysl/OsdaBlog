@@ -56,12 +56,12 @@ def load_user(user_id):
 def get_all_posts():
     posts = BlogPost.query.all()
 
-    return render_template("index.html", all_posts=posts)
+    return render_template("index.html", all_posts=posts, logged_in=current_user.is_authenticated)
 
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    error = None
+
     form = RegisterUser()
     if form.validate_on_submit():
         name = form.user.data
@@ -83,7 +83,7 @@ def register():
         login_user(new_user)
         return redirect(url_for("get_all_posts"))
 
-    return render_template("register.html", form=form, error=error)
+    return render_template("register.html", form=form, logged_in=current_user.is_authenticated)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -93,27 +93,26 @@ def login():
     if form.validate_on_submit():
         email = form.email.data
         password = form.password.data
-        user = db.session.query(NewUser).filter_by(email=email).first()
-        if email == user.email and werkzeug.security.check_password_hash(pwhash=user.password, password=password):
-            flash(message='Logged in successfully.')
-            login_user(user)
-            return redirect(url_for("get_all_posts"))
-        elif email != user.email:
-            error = 'Invalid email'
-            flash(message="Invalid email!", category="danger")
-            print('Wrong Email')
-            render_template("login.html", form=form, error=error)
-        elif werkzeug.security.check_password_hash(pwhash=user.password, password=password):
-            error = 'Invalid password'
-            flash(message="Invalid password!", category="danger")
-            print('Wrong Password')
-            render_template("login.html", form=form, error=error)
+        user_login = NewUser.query.filter_by(email=email).first()
+        if not user_login:
+            flash(message='That email does not exist, please register')
+            return redirect(url_for("login"))
 
-    return render_template("login.html", form=form, error=error)
+        elif not werkzeug.security.check_password_hash(pwhash=user_login.password, password=password):
+            flash(message="Invalid password", category="danger")
+            print('Wrong Password')
+            return redirect(url_for('login'))
+        else:
+            login_user(user_login)
+            return redirect(url_for('get_all_posts'))
+
+    return render_template("login.html", form=form, logged_in=current_user.is_authenticated)
 
 
 @app.route('/logout')
+@login_required
 def logout():
+    logout_user()
     return redirect(url_for('get_all_posts'))
 
 
@@ -152,6 +151,7 @@ def add_new_post():
 
 
 @app.route("/edit-post/<int:post_id>")
+@login_required
 def edit_post(post_id):
     post = BlogPost.query.get(post_id)
     edit_form = CreatePostForm(
@@ -174,6 +174,7 @@ def edit_post(post_id):
 
 
 @app.route("/delete/<int:post_id>")
+@login_required
 def delete_post(post_id):
     post_to_delete = BlogPost.query.get(post_id)
     db.session.delete(post_to_delete)

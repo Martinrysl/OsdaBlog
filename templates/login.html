@@ -9,15 +9,6 @@
     <div class="overlay"></div>
     <div class="container">
       <div class="row">
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        {% for message in messages %}
-        {{ message }}
-
-
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
         <div class="col-lg-8 col-md-10 mx-auto">
           <div class="page-heading">
 
@@ -31,8 +22,18 @@
 
   <div class="container">
     <div class="row">
-
       <div class="col-lg-8 col-md-10 mx-auto content">
+          {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-primary alert-dismissible" role="alert">
+          <strong>{{ message }}</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" arial-label="Close"></button>
+        </div>
+
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
         {{ wtf.quick_form(form, novalidate=True, button_map={"submit": "primary"}) }}
       </div>
     </div>
