@@ -35,6 +35,7 @@ class NewUser(UserMixin, db.Model): #Parent
     email = db.Column(db.String(250), unique=True, nullable=False)
     password = db.Column(db.String(250), nullable=False)
     post = relationship("BlogPost", back_populates="author")
+    comments = relationship("Comment", back_populates="text_author")
 
 
 class BlogPost(db.Model): #Child
@@ -49,6 +50,19 @@ class BlogPost(db.Model): #Child
     date = db.Column(db.String(250), nullable=False)
     body = db.Column(db.Text, nullable=False)
     img_url = db.Column(db.String(250), nullable=False)
+
+    comments = relationship("Comment", back_populates="text_blog")
+
+
+class Comment(db.Model): #Child
+    __tablename__ = "comments"
+    id = db.Column(db.Integer, primary_key=True)
+    author_id = db.Column(db.String(250), db.ForeignKey('users.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey("blog_posts.id"))
+
+    text_author = relationship("NewUser", back_populates="comments")
+    text_blog = relationship("BlogPost", back_populates="comments")
+    comment_text = db.Column(db.Text, nullable=False)
 
 
 @login_manager.user_loader
@@ -139,8 +153,23 @@ def logout():
 @app.route("/post/<int:post_id>", methods=['GET', 'POST'])
 def show_post(post_id):
     form = CommentForm()
+    comments = Comment.query.all()
     requested_post = BlogPost.query.get(post_id)
-    return render_template("post.html", post=requested_post, current_user=current_user, form=form)
+    if form.validate_on_submit():
+        if current_user.is_authenticated:
+            new_comment = Comment(
+                comment_text=form.body.data,
+                text_author=current_user,
+                text_blog=requested_post
+
+            )
+            db.session.add(new_comment)
+            db.session.commit()
+            return render_template("post.html", post=requested_post, current_user=current_user, form=form)
+        else:
+            flash("Please Register or Login to Comment")
+            return redirect(url_for('login'))
+    return render_template("post.html", post=requested_post, current_user=current_user, form=form, comments=comments)
 
 
 @app.route("/about")

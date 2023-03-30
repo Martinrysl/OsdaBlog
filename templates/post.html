@@ -33,6 +33,7 @@
 
 
 <!--           Comments Area -->
+          {% for comment in comments: %}
           <div class="col-lg-8 col-md-10 mx-auto comment">
               <ul class="commentList">
                 <li>
@@ -40,15 +41,20 @@
                       <img src="https://pbs.twimg.com/profile_images/744849215675838464/IH0FNIXk.jpg"/>
                     </div>
                     <div class="commentText">
-                      <p>Some comment</p>
-                      <span class="date sub-text">comment author name</span>
+                      <p> {{ comment.comment_text | safe}} </p>
+                      <span class="date sub-text"> from {{ comment.text_author.user }}</span>
                       </div>
 
                 </li>
               </ul>
             </div>
-
-
+            {% endfor %}
+          {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+          {% endfor %}
+        {% endif %}
+        {% endwith %}
           </div>
         <div>
                     {{ ckeditor.load() }}
