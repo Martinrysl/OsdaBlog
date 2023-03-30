@@ -1,5 +1,5 @@
 {% include "header.html" %}
-
+{% import "bootstrap/wtf.html" as wtf %}
   <!-- Page Header -->
   <header class="masthead" style="background-image: url('{{post.img_url}}')">
     <div class="overlay"></div>
@@ -42,13 +42,20 @@
                     <div class="commentText">
                       <p>Some comment</p>
                       <span class="date sub-text">comment author name</span>
-                    </div>
+                      </div>
+
                 </li>
               </ul>
             </div>
 
 
           </div>
+        <div>
+                    {{ ckeditor.load() }}
+                      {{ ckeditor.config(name='body') }}
+                      {{ wtf.quick_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+
+                  </div>
       </div>
     </div>
   </article>
