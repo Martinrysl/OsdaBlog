@@ -20,13 +20,13 @@ class RegisterUser(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired(),
                                                      Length(max=50, min=8,
                                                             message='Password must have at least 8 characters')])
-    submit = SubmitField('Submit')
+    submit = SubmitField('Register')
 
 
 class Login(FlaskForm):
     email = EmailField('Email', validators=[DataRequired(), Email(granular_message=True, check_deliverability=True)])
     password = StringField('Password', validators=[DataRequired()])
-    submit = SubmitField('Submit')
+    submit = SubmitField('Login')
 
 
 class CommentForm(FlaskForm):

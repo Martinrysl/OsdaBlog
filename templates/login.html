@@ -1,4 +1,4 @@
-{% extends 'bootstrap/base.html' %}
+
 {% import "bootstrap/wtf.html" as wtf %}
 
 {% block content %}
@@ -35,6 +35,11 @@
         {% endif %}
         {% endwith %}
         {{ wtf.quick_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+        <br>
+        or
+        <br>
+        <br>
+        <a class="btn btn-primary float-left" href="{{url_for('register')}}">Register</a>
       </div>
     </div>
   </div>

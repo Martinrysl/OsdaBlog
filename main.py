@@ -152,6 +152,7 @@ def logout():
 
 @app.route("/post/<int:post_id>", methods=['GET', 'POST'])
 def show_post(post_id):
+
     form = CommentForm()
     comments = Comment.query.all()
     requested_post = BlogPost.query.get(post_id)
@@ -165,7 +166,7 @@ def show_post(post_id):
             )
             db.session.add(new_comment)
             db.session.commit()
-            return render_template("post.html", post=requested_post, current_user=current_user, form=form)
+            return redirect(url_for("show_post", post_id=requested_post.id))
         else:
             flash("Please Register or Login to Comment")
             return redirect(url_for('login'))
