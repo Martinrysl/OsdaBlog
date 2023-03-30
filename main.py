@@ -36,9 +36,6 @@ class NewUser(UserMixin, db.Model): #Parent
     password = db.Column(db.String(250), nullable=False)
     post = relationship("BlogPost", back_populates="author")
 
-    def __repr__(self):
-        return '<Email %r>' % self.email
-
 
 class BlogPost(db.Model): #Child
     __tablename__ = "blog_posts"
@@ -142,7 +139,7 @@ def logout():
 @app.route("/post/<int:post_id>", methods=['GET', 'POST'])
 def show_post(post_id):
     requested_post = BlogPost.query.get(post_id)
-    return render_template("post.html", post=requested_post, logged_in=current_user.is_authenticated)
+    return render_template("post.html", post=requested_post, current_user=current_user)
 
 
 @app.route("/about")

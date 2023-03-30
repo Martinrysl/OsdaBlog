@@ -26,11 +26,11 @@
               {{post.title}}
             </h2>
             <h3 class="post-subtitle">
-              {{post.subtitle}}
+              {{post.subtitle}}s
             </h3>
           </a>
           <p class="post-meta">Posted by
-            <a href="#">{{post.author_id}}</a>
+            <a href="#">{{c}}</a>
             on {{post.date}}
           {% if current_user.id == 1: %}
             <a href="{{url_for('delete_post', post_id=post.id) }}">✘</a>
