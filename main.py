@@ -65,6 +65,16 @@ class Comment(db.Model): #Child
     comment_text = db.Column(db.Text, nullable=False)
 
 
+gravatar = Gravatar(app,
+                    size=100,
+                    rating='g',
+                    default='retro',
+                    force_default=False,
+                    force_lower=False,
+                    use_ssl=False,
+                    base_url=None)
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return NewUser.query.get(int(user_id))
@@ -152,7 +162,7 @@ def logout():
 
 @app.route("/post/<int:post_id>", methods=['GET', 'POST'])
 def show_post(post_id):
-
+    gravatars = gravatar
     form = CommentForm()
     comments = Comment.query.all()
     requested_post = BlogPost.query.get(post_id)
@@ -170,7 +180,8 @@ def show_post(post_id):
         else:
             flash("Please Register or Login to Comment")
             return redirect(url_for('login'))
-    return render_template("post.html", post=requested_post, current_user=current_user, form=form, comments=comments)
+    return render_template("post.html", post=requested_post, current_user=current_user, form=form,
+                           comments=comments, gravatar=gravatars)
 
 
 @app.route("/about")

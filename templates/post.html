@@ -38,11 +38,11 @@
               <ul class="commentList">
                 <li>
                     <div class="commenterImage">
-                      <img src="https://pbs.twimg.com/profile_images/744849215675838464/IH0FNIXk.jpg"/>
+                      <img src="{{ comment.text_author.user | gravatar }}"/>
                     </div>
                     <div class="commentText">
                       <p> {{ comment.comment_text | safe}} </p>
-                      <span class="date sub-text"> from {{ comment.text_author.user }}</span>
+                      <span class="meta"><a>{{comment.text_author.user}}</a></span>
                       </div>
 
                 </li>
