@@ -10,11 +10,12 @@ from flask_gravatar import Gravatar
 from flask_bootstrap import Bootstrap
 import werkzeug.security
 from functools import wraps
-from sqlalchemy import Table, Column, Integer, ForeignKey
-
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
+app.config['SECRET_KEY'] = os.getenv("app.config['SECRET_KEY']")
 ckeditor = CKEditor(app)
 Bootstrap(app)
 login_manager = LoginManager()
@@ -22,7 +23,7 @@ login_manager.init_app(app)
 
 
 ##CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/martin/PycharmProjects/Last_Capstone/blog.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("app.config['SQLALCHEMY_DATABASE_URI']")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
