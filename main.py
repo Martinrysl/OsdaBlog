@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 import os
 load_dotenv()
 
+version = os.environ['VERSION']
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("KEY_SECRET")
 ckeditor = CKEditor(app)
